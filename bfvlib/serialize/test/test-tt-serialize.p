@@ -14,6 +14,6 @@ ttObj:LoadClasses().
 serializer = new SimpleJsonSerializer().
 jsonResult = serializer:Serialize(ttObj).
 
-jsonResult:WriteFile("d:/tmp/TestTempTable.json").
+jsonResult:WriteFile(session:temp-directory + 'TestTempTable.json').
 
 message 'done' view-as alert-box.

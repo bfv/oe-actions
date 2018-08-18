@@ -10,7 +10,7 @@ define variable jsonResult as JsonObject no-undo.
 ttObj = new TestTempTables().
 
 serializer = new SimpleJsonSerializer().
-serializer:DeserializeFile('d:/tmp/TestTempTable.json', ttObj).
+serializer:DeserializeFile(session:temp-directory + 'TestTempTable.json', ttObj).
 
 message ttObj:ToString() view-as alert-box.
 message 'done' view-as alert-box.
