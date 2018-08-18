@@ -1,14 +1,12 @@
 
-using bfvlib.serialize.test.TestMessageOut.
-using Progress.IO.JsonSerializer.
-using Progress.IO.OutputStream.
-using bfvlib.serialize.SimpleJsonSerializer.
-using Progress.Json.ObjectModel.JsonObject.
-using bfvlib.serialize.JSON.
-using OpenEdge.Core.Collections.Array.
-using OpenEdge.Core.String.
-using OpenEdge.Core.Collections.List.
-using bfvlib.serialize.test.Address.
+using OpenEdge.Core.Collections.List from propath.
+using OpenEdge.Core.String from propath.
+using Progress.IO.JsonSerializer from propath.
+using Progress.Json.ObjectModel.JsonObject from propath.
+using bfvlib.serialize.JSON from propath.
+using bfvlib.serialize.SimpleJsonSerializer from propath.
+using bfvlib.serialize.test.Address from propath.
+using bfvlib.serialize.test.TestMessageOut from propath.
 
 define variable msg as TestMessageOut no-undo.
 define variable targetObj as TestMessageOut no-undo.
