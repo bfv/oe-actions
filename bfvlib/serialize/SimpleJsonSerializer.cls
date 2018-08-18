@@ -285,7 +285,7 @@ class bfvlib.serialize.SimpleJsonSerializer implements ISerializable:
 
         getter = "Get" + prop:DataType:ToString().        
         if (lookup(prop:DataType:ToString(), serializeThese) > 0) then  
-          dynamic-property(targetObj, prop:Name) = dynamic-invoke(jsonIn, getter, prop:Name).
+          dynamic-property(targetObj, prop:Name) = dynamic-invoke(jsonIn, getter, prop:Name) no-error.
         else do:
           if (prop:DataTypeName = "OpenEdge.Core.Collections.List" and targetObj:GetClass():IsA("bfvlib.serialize.IListInfo")) then do:
             //add list entries to object
