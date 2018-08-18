@@ -1,0 +1,26 @@
+ADD TABLE "bfv_semaphore"
+  AREA "DataArea"
+  LABEL "Semaforen"
+  DESCRIPTION "Semaphores to prevent starting processes more than once"
+  DUMP-NAME "cov_sema"
+
+ADD FIELD "topic" OF "bfv_semaphore" AS character 
+  FORMAT "x(32)"
+  INITIAL ""
+  LABEL "topic"
+  POSITION 2
+  MAX-WIDTH 64
+  COLUMN-LABEL "topic"
+  ORDER 10
+
+ADD INDEX "pk" ON "bfv_semaphore" 
+  AREA "IndexArea"
+  UNIQUE
+  PRIMARY
+  INDEX-FIELD "topic" ASCENDING 
+
+.
+PSC
+cpstream=UTF-8
+.
+0000000467
