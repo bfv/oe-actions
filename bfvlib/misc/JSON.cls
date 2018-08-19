@@ -13,7 +13,7 @@ using Progress.Json.ObjectModel.JsonConstruct.
 
 block-level on error undo, throw.
 
-class bfvlib.serialize.JSON: 
+class bfvlib.misc.JSON: 
   
   method public static longchar Stringify(json as JsonConstruct):
     return Stringify(json, false).
