@@ -3,10 +3,11 @@ using OpenEdge.Core.Collections.List from propath.
 using OpenEdge.Core.String from propath.
 using Progress.IO.JsonSerializer from propath.
 using Progress.Json.ObjectModel.JsonObject from propath.
-using bfvlib.serialize.JSON from propath.
+using bfvlib.misc.JSON  from propath.
 using bfvlib.serialize.SimpleJsonSerializer from propath.
 using bfvlib.serialize.test.Address from propath.
 using bfvlib.serialize.test.TestMessageOut from propath.
+using bfvlib.serialize.SimpleJsonDeserializer.
 
 define variable msg as TestMessageOut no-undo.
 define variable targetObj as TestMessageOut no-undo.
@@ -50,7 +51,7 @@ define variable msgIn as bfvlib.serialize.test.TestMessageOut no-undo.
 if (true) then do:
 
   define variable simpleSer as SimpleJsonSerializer no-undo.
-  define variable simpleDeser as SimpleJsonSerializer no-undo.
+  define variable simpleDeser as SimpleJsonDeserializer no-undo.
   
   simpleSer = new SimpleJsonSerializer().
   jsonOut = simpleSer:Serialize(msg, true).
@@ -58,7 +59,7 @@ if (true) then do:
   message string(JSON:Stringify(jsonOut, true)) view-as alert-box.
   clipboard:value = string(JSON:Stringify(jsonOut, true)).
   
-  simpleDeser = new SimpleJsonSerializer().
+  simpleDeser = new SimpleJsonDeserializer().
   msgIn = new TestMessageOut().
   simpleDeser:Deserialize(jsonOut, msgIn).
     
