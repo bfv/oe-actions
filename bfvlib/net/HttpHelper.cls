@@ -19,11 +19,12 @@ using Progress.Lang.Object.
 using OpenEdge.Core.WidgetHandle.
 using OpenEdge.Core.String.
 using OpenEdge.Core.Memptr.
-using bfvlib.net.HttpRequestOptions.
 using OpenEdge.Core.Collections.ISet.
 using OpenEdge.Core.Collections.IIterator.
 using Progress.Json.ObjectModel.JsonObject.
 using Progress.Lang.AppError.
+using bfvlib.net.HttpHelper.
+using bfvlib.net.HttpRequestOptions.
 
 block-level on error undo, throw.
 
@@ -38,12 +39,7 @@ class bfvlib.net.HttpHelper:
     
 
   method public static IHttpResponse Get(url as character):
-    
-    define variable options as HttpRequestOptions no-undo.
-    options = new HttpRequestOptions().
-    
-    return Get(url, options).
-    
+    return get(url, ?).
   end method.
   
   method public static IHttpResponse Get(url as character, options as HttpRequestOptions):
@@ -54,10 +50,15 @@ class bfvlib.net.HttpHelper:
     define variable response as IHttpResponse no-undo.
   
     builder = RequestBuilder:Get(url).
-    addHeadersToRequest(builder, options).
+    
+    if (valid-object(options)) then
+      addHeadersToRequest(builder, options).
     
     request = builder:Request.
-    addParametersToRequest(request, options).
+    
+    if (valid-object(options)) then 
+      addParametersToRequest(request, options).
+    
     client = ClientBuilder:Build():Client.
     
     response = client:Execute(request).
@@ -65,6 +66,10 @@ class bfvlib.net.HttpHelper:
     return response.
     
   end method.
+  
+  method public static IHttpResponse Post(url as character, body as longchar):
+    return HttpHelper:Put(url, body, ?).  
+  end.
   
   method public static IHttpResponse Post(url as character, body as longchar, options as HttpRequestOptions):
 
@@ -74,10 +79,15 @@ class bfvlib.net.HttpHelper:
     define variable response as IHttpResponse no-undo.
   
     builder = RequestBuilder:Post(url, new String(body)).
-    addHeadersToRequest(builder, options).
+    
+    if (valid-object(options)) then
+      addHeadersToRequest(builder, options).
     
     request = builder:Request.
-    addParametersToRequest(request, options).
+    
+    if (valid-object(options)) then
+      addParametersToRequest(request, options).
+    
     client = ClientBuilder:Build():Client.
     
     response = client:Execute(request).
@@ -85,6 +95,10 @@ class bfvlib.net.HttpHelper:
     return response.
     
   end method.
+    
+  method public static IHttpResponse Put(url as character, body as longchar):
+    return HttpHelper:Put(url, body, ?).  
+  end.
   
   method public static IHttpResponse Put(url as character, body as longchar, options as HttpRequestOptions):
     
@@ -94,9 +108,15 @@ class bfvlib.net.HttpHelper:
     define variable response as IHttpResponse no-undo.
   
     builder = RequestBuilder:Put(url, new String(body)).
-    addHeadersToRequest(builder, options).
+    
+    if (valid-object(options)) then
+      addHeadersToRequest(builder, options).
     
     request = builder:Request.
+    
+    if (valid-object(options)) then
+      addParametersToRequest(request, options).
+      
     client = ClientBuilder:Build():Client.
     
     response = client:Execute(request).
