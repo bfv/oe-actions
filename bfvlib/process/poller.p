@@ -38,7 +38,7 @@ define variable pidfilename as character no-undo.
 define variable alivefilename as character no-undo.
 define variable executable as IExecutable no-undo.
 define variable processId as integer no-undo.
-define variable runningTime as integer no-undo.
+define variable clock as integer no-undo.
 define variable holding as logical no-undo.
 
 define buffer semaphore for bfv_semaphore.
@@ -59,25 +59,7 @@ function getProcessId returns integer() forward.
 params = new PollerInfo().
 processId = getProcessId().
 
-
-/* attempt to exclusive lock the semaphore. If this fails the process is already running */
-do transaction on error undo, throw:
-  
-  find semaphore where semaphore.topic = params:Topic exclusive-lock no-wait no-error.
-  if (locked(semaphore)) then do:
-    if (not params:CronMode) then do:
-      logThis(substitute("starting process '&1', pid: &2", params:Topic, processId)).
-      logThis(substitute("process '&1' already running, exiting pid: &2", params:Topic, processId)).
-    end.  
-    quit.  
-  end.
-  
-  if (not available(semaphore)) then do:
-    create semaphore.
-    assign semaphore.topic = params:Topic.
-  end.
-  
-end.
+run checkForOthers.
 
 logThis(substitute("starting process '&1', pid: &2", params:Topic, processId)).
 
@@ -86,6 +68,9 @@ logThis(substitute("period: &1s", params:Period)).
 logThis(substitute("alive status: &1", string(params:ReportIsAlive, "true/false"))).
 logThis(substitute("cronmode: &1s", params:CronMode)).
 
+alivefilename = "./" + params:Topic + ".alive".
+  
+/***** main loop *****/
 do on error undo, throw:
     
   run writePidFile.
@@ -98,8 +83,9 @@ do on error undo, throw:
     
     do on error undo, throw:
       
-      if (search(params:Topic + ".hold") = ?) then do:        
-        executable:Execute().
+      if (search(params:Topic + ".hold") = ?) then do:
+        if (clock mod params:Period = 0) then        
+          executable:Execute().
         run evalHolding(false).
       end.
       else
@@ -114,8 +100,8 @@ do on error undo, throw:
     if (params:ReportIsAlive) then
       run evalIsAlive.
   
-    pause params:Period no-message.  
-    runningTime = runningTime + params:Period.
+    pause 1 no-message.  
+    clock = clock + 1.
       
   end.
   
@@ -123,7 +109,7 @@ do on error undo, throw:
     LogThis(substitute("ERROR: &1", err1:GetMessage(1))).
   end catch.
   
-end.
+end.  // main loop
 
 logThis(substitute("closing, pid: &1", processId)).
 
@@ -132,6 +118,32 @@ finally:
   os-delete value(pidfilename) no-error.
   logThis(substitute("closed, pid: &1", processId)).
 end.
+
+
+/************************************* procedures / functions *************************************/
+
+procedure checkForOthers private:
+
+  /* attempt to exclusive lock the semaphore. If this fails the process is already running */
+  do transaction on error undo, throw:
+    
+    find semaphore where semaphore.topic = params:Topic exclusive-lock no-wait no-error.
+    if (locked(semaphore)) then do:
+      if (not params:CronMode) then do:
+        logThis(substitute("starting process '&1', pid: &2", params:Topic, processId)).
+        logThis(substitute("process '&1' already running, exiting pid: &2", params:Topic, processId)).
+      end.  
+      quit.  
+    end.
+    
+    if (not available(semaphore)) then do:
+      create semaphore.
+      assign semaphore.topic = params:Topic.
+    end.
+    
+  end.  // transaction
+
+end procedure.
 
 /* vul de volgende procedure aan voor het registreren van een proces */
 procedure fillClassnames:
@@ -166,7 +178,7 @@ end function.
 
 function logThis returns logical (messageString as character):
   
-  /* stream openen en sluiten zodat ook het proces in deze logfile kan schrijven */ 
+  /* open and close stream so the process can write it as well */ 
   output stream logfile to value(params:Topic + ".log") append.
   
   put stream logfile unformatted iso-date(now) " " messageString skip.
@@ -213,9 +225,7 @@ end procedure.
 
 procedure evalIsAlive:
   
-  alivefilename = "./" + params:Topic + ".alive".
-  
-  if (runningTime mod 60 < params:Period) then do:
+  if (clock mod 60 = 0) then do:
     output stream alivefile to value(alivefilename).
     put stream alivefile unformatted iso-date(now) skip. 
     output stream alivefile close.
