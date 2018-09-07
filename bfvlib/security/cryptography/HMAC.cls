@@ -24,6 +24,8 @@
 
 block-level on error undo, throw.
 
+using bfvlib.misc.Binary.
+
 class bfvlib.security.cryptography.HMAC: 
 
   method public static character SHA256-BASE64(key as character, data as character):
@@ -61,7 +63,8 @@ class bfvlib.security.cryptography.HMAC:
 /*      put-bytes(mKeyIpad, iBytePos) = hex-decode("36":U).  /* 64 bytes of 0x36 (54 dec, "6" ascii)*/  */
 /*    end.                                                                                              */
     
-    // de code hierboven heeft last van bug PSC00343029 onder 11.6
+    // the code above suffers from bug PSC00343029 in 11.6
+    put-string(mKeyOpad, 1, {&xiBlockSize}) = fill("~000", {&xiBlockSize}). // use octal for the value
     put-string(mKeyOpad, 1, {&xiBlockSize}) = fill("~134", {&xiBlockSize}). // use octal for the value
     put-string(mKeyIpad, 1, {&xiBlockSize}) = fill("~066", {&xiBlockSize}). // use octal for the value
         
@@ -90,10 +93,10 @@ class bfvlib.security.cryptography.HMAC:
         iIpad = get-byte(mKeyIpad, iBytePos).
           
       /* The inner key, mKeyIpad is formed from mKey by XORing each byte with 0x36.. */
-      put-byte(mKeyIpad, iBytePos) = binaryXOR(iKey, iIpad).
+      put-byte(mKeyIpad, iBytePos) = Binary:XOR(iKey, iIpad).
         
       /* The inner key, mKeyOpad is formed from mKey by XORing each byte with 0x5C. */
-      put-byte(mKeyOpad, iBytePos) = binaryXOR(iKey, iOpad).
+      put-byte(mKeyOpad, iBytePos) = Binary:XOR(iKey, iOpad).
         
     end.
         
@@ -160,34 +163,6 @@ class bfvlib.security.cryptography.HMAC:
         
     &UNDEFINE xiBlockSize
     return cHMACSHA.
-  end method.
-  
-    
-  method static private integer binaryXOR(intOperand1 as integer, input intOperand2 as integer):
-    
-    define variable iByteLoop  as integer no-undo.
-    define variable iXOResult  as integer no-undo.
-    define variable lFirstBit  as logical no-undo.
-    define variable lSecondBit as logical no-undo.
-    
-    iXOResult = 0.
-    
-    /*spin through each byte of each char*/
-    do iByteLoop = 0 to 7: /* as processing a single byte character */
-    
-      /*find state (true / false) of each integer's byte*/
-      assign
-        lFirstBit  = get-bits(intOperand1, iByteLoop + 1, 1) = 1
-        lSecondBit = get-bits(intOperand2, iByteLoop + 1, 1) = 1.
-    
-      /* XOR each bit*/
-      if (lFirstBit and not lSecondBit) or 
-         (lSecondBit and not lFirstBit) then
-        iXOResult = iXOResult + EXP(2, iByteLoop).
-        
-    end.
-     
-    return iXOResult.
   end method. 
     
 end class.
