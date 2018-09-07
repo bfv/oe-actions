@@ -1,0 +1,71 @@
+<project name="build" default="build" basedir=".">
+
+  <taskdef resource="PCT.properties" />
+  <typedef resource="types.properties" />
+  <property environment="env"/>
+
+  <target name="build" depends="initvars,init">
+  	<antcall target="createdb" />
+    <antcall target="compile" />
+  	<antcall target="package" />
+  </target>
+
+  <target name="initvars">
+    <property name="srcdir" location="." />
+    <property name="rootdir" location="./.." />
+    <property name="builddir" location="${rootdir}/build" />
+
+    <echo message="rootdir:       ${rootdir}" />
+    <echo message="srcdir:        ${srcdir}" />
+    <echo message="builddir:      ${builddir}" />
+    <echo message="DLC:           ${DLC}" />
+  </target>
+
+  <target name="init">
+    <delete dir="${builddir}" failonerror="false" />
+    <mkdir dir="${builddir}" />
+  	<mkdir dir="${builddir}/xref_out" />
+  </target>
+  
+	<target name="createdb">
+    <mkdir dir="${builddir}/db" />
+		<PCTCreateBase dbname="bfvlib" destdir="${builddir}/db" dlchome="${DLC}" structfile="${srcdir}/bfvlib/schema/bfvlib.st"/>
+    <PCTLoadSchema dlcHome="${DLC}">
+      <PCTConnection dbName="bfvlib" dbDir="${builddir}/db" singleUser="true" />
+      <fileset dir="${srcdir}/bfvlib/schema" includes="*.df" />
+    </PCTLoadSchema>
+	</target>
+		
+<!--	
+  <target name="createdelta">
+	  <PCTDumpIncremental destfile="${builddir}/db/delta.df" dlchome="${DLC}">
+	  	<sourcedb dbName="bfvlib" dbdir="${builddir}/db" singleuser="true" logicalName="sourcedb"/>
+		  <targetdb paramFile="${rootdir}/config/db.pf" />
+		</PCTDumpIncremental>
+	</target>
+-->
+	
+  <target name="compile">
+    <PCTCompile destdir="${builddir}/bin" dlchome="${DLC}" stopOnError="true" graphicalMode="false" forceCompile="true" MD5="true" keepXref="true" xrefDir="${builddir}/xref_out">
+      <DBConnection dbName="bfvlib" dbDir="${builddir}/db" singleUser="true" />
+      <propath>
+        <pathelement path="${srcdir}" />
+        <pathelement path="${DLC}/tty/OpenEdge.Core.pl" />
+        <pathelement path="${DLC}/tty/netlib/OpenEdge.Net.pl" />
+      </propath>
+      <fileset dir="${srcdir}">
+        <include name="**/*.p" />
+        <include name="**/*.cls" />
+      </fileset>
+    </PCTCompile>
+  </target>
+  
+  <target name="package">
+    <PCTLibrary destFile="${builddir}/bfvlib.pl"  dlchome="${DLC}">
+      <fileset dir="${builddir}/bin">
+        <include name="**/*.r" />
+  	  </fileset>
+    </PCTLibrary>
+  </target>
+
+</project>
