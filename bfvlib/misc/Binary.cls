@@ -150,5 +150,43 @@ class bfvlib.misc.Binary:
     return resultByte.
       
   end method.
+  
+  method public static integer CircularShiftLeft(operand1 as integer, shiftcount as integer):
+    return Binary:CircularShiftLeft(operand1, shiftcount, 8).  
+  end method.
+  
+  method public static integer CircularShiftLeft(operand1 as integer, shiftcount as integer, bitcount as integer):
     
+    define variable resultByte as integer no-undo.
+    
+    if (shiftcount = 0) then
+      return operand1.
+      
+    resultByte = Binary:OR(
+                   Binary:ShiftLeft(operand1, shiftcount, bitcount),
+                   Binary:ShiftRight(operand1, (bitcount - shiftcount), bitcount)
+                 ). 
+    return resultByte.    
+    
+  end method.
+
+  method public static integer CircularShiftRight(operand1 as integer, shiftcount as integer):
+    return Binary:CircularShiftRight(operand1, shiftcount, 8).  
+  end method.
+  
+  method public static integer CircularShiftRight(operand1 as integer, shiftcount as integer, bitcount as integer):
+    
+    define variable resultByte as integer no-undo.
+    
+    if (shiftcount = 0) then
+      return operand1.
+      
+    resultByte = Binary:OR(
+                   Binary:ShiftRight(operand1, shiftcount, bitcount),
+                   Binary:ShiftLeft(operand1, (bitcount - shiftcount), bitcount)
+                 ). 
+    return resultByte.    
+    
+  end method.
+  
 end class.
