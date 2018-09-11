@@ -15,7 +15,6 @@ using OpenEdge.Net.HTTP.IHttpRequest.
 using OpenEdge.Net.HTTP.RequestBuilder.
 using OpenEdge.Net.URI.
 using OpenEdge.Net.HTTP.IHttpResponse.
-using Progress.Lang.Object.
 using OpenEdge.Core.WidgetHandle.
 using OpenEdge.Core.String.
 using OpenEdge.Core.Memptr.
@@ -50,6 +49,7 @@ class bfvlib.net.HttpHelper:
     define variable response as IHttpResponse no-undo.
   
     builder = RequestBuilder:Get(url).
+    builder = HttpHelper:checkProxy(builder, options).
     
     if (valid-object(options)) then
       addHeadersToRequest(builder, options).
@@ -79,6 +79,7 @@ class bfvlib.net.HttpHelper:
     define variable response as IHttpResponse no-undo.
   
     builder = RequestBuilder:Post(url, new String(body)).
+    builder = HttpHelper:checkProxy(builder, options).
     
     if (valid-object(options)) then
       addHeadersToRequest(builder, options).
@@ -108,6 +109,7 @@ class bfvlib.net.HttpHelper:
     define variable response as IHttpResponse no-undo.
   
     builder = RequestBuilder:Put(url, new String(body)).
+    builder = HttpHelper:checkProxy(builder, options).
     
     if (valid-object(options)) then
       addHeadersToRequest(builder, options).
@@ -241,6 +243,15 @@ class bfvlib.net.HttpHelper:
     if (response:StatusCode >= 400 and response:StatusCode < 600) then
       undo, throw new AppError(substitute("http error &1 - &2", response:StatusCode, response:StatusReason), -1).
           
+  end method.
+  
+  method public static RequestBuilder checkProxy(builder as RequestBuilder, options as HttpRequestOptions):
+    
+    if (options:ViaProxy > "") then
+      builder:ViaProxy(options:ViaProxy).    
+    
+    return builder.
+    
   end method.
   
 end class.
