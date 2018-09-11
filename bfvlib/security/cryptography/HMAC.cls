@@ -28,141 +28,117 @@ using bfvlib.misc.Binary.
 
 class bfvlib.security.cryptography.HMAC: 
 
-  method public static character SHA256-BASE64(key as character, data as character):
-    return keyedHash('SHA-256', key, data).
+  method public static character SHA256_Base64(key as character, data as character):
+    return string(base64-encode(keyedHash('SHA-256', key, data))).
   end.    
 
-  method private static character keyedHash(pcSHA as character, pcKey as character, pcData as character):
+   method public static character SHA256_Hex(key as character, data as character):
+    return string(hex-encode(keyedHash('SHA-256', key, data))).
+  end.
+  
+  method public static character SHA1_Base64(key as character, data as character):
+    return string(base64-encode(keyedHash('SHA-1', key, data))).
+  end.    
+
+   method public static character SHA1_Hex(key as character, data as character):
+    return string(hex-encode(keyedHash('SHA-1', key, data))).
+  end.
+  
+  method public static character MD5_Base64(key as character, data as character):
+    return string(base64-encode(keyedHash('MD5', key, data))).
+  end.    
+
+   method public static character MD5_Hex(key as character, data as character):
+    return string(hex-encode(keyedHash('MD5', key, data))).
+  end.
+  
+  /* in its current state the algorithm is flawed when using zero length keys.
+   * In reality this will not occur 
+   */
+  method private static raw keyedHash(hashAlgoritm as character, keyString as character, dataString as character):
     
-    define variable mKeyOpad       as memptr    no-undo.
-    define variable mKeyIpad       as memptr    no-undo.
-    define variable mData          as memptr    no-undo.
-    define variable mKey           as memptr    no-undo.
-    define variable mInnerCombined as memptr    no-undo.
-    define variable mOuterCombined as memptr    no-undo.
-    define variable iBytePos       as integer   no-undo.
-    define variable iOpad          as integer   no-undo.
-    define variable iIpad          as integer   no-undo.
-    define variable iKey           as integer   no-undo.
-    define variable iTimeTaken     as integer   no-undo.
-    define variable rRawDataSHA    as raw       no-undo.
-    define variable cHMACSHA       as character no-undo.
+    define variable outerPaddedKey as memptr no-undo.
+    define variable innerPaddedKey as memptr no-undo.
+    define variable dataBytes as memptr no-undo.
+    define variable keyBytes as memptr no-undo.
+    define variable innerCombined as memptr no-undo.
+    define variable outerCombined as memptr no-undo.
+    define variable byteNumber as integer no-undo.
+    define variable outerPadByteValue as integer no-undo.
+    define variable innerPadByteValue as integer no-undo.
+    define variable keyByteValue as integer no-undo.
+    define variable rRawDataSHA as raw no-undo.
+    define variable i as integer no-undo.
         
-        &SCOPED-DEFINE xiBlockSize  64
+    &SCOPED-DEFINE hmacBlockSize  64
         
-    set-size(mKey)     = 0.
-    set-size(mKeyOpad) = 0.
-    set-size(mKeyIpad) = 0.
-    set-size(mKey)     = {&xiBlockSize}.
-    set-size(mKeyOpad) = {&xiBlockSize}.
-    set-size(mKeyIpad) = {&xiBlockSize}.
-        
-/*    do iBytePos = 1 to {&xiBlockSize}:                                                                */
-/*      put-bytes(mKey, iBytePos)     = hex-decode("00":U).  /* 64 bytes of zeros 0x00*/                */
-/*      put-bytes(mKeyOpad, iBytePos) = hex-decode("5C":U).  /* 64 bytes of 0x5C (92 dec,  "/" ascii) */*/
-/*      put-bytes(mKeyIpad, iBytePos) = hex-decode("36":U).  /* 64 bytes of 0x36 (54 dec, "6" ascii)*/  */
-/*    end.                                                                                              */
+    set-size(keyBytes)     = {&hmacBlockSize}.
+    set-size(outerPaddedKey) = {&hmacBlockSize}.
+    set-size(innerPaddedKey) = {&hmacBlockSize}.
     
-    // the code above suffers from bug PSC00343029 in 11.6
-    put-string(mKeyOpad, 1, {&xiBlockSize}) = fill("~000", {&xiBlockSize}). // use octal for the value
-    put-string(mKeyOpad, 1, {&xiBlockSize}) = fill("~134", {&xiBlockSize}). // use octal for the value
-    put-string(mKeyIpad, 1, {&xiBlockSize}) = fill("~066", {&xiBlockSize}). // use octal for the value
+    do i = 1 to {&hmacBlockSize}:
+      put-bytes(keyBytes, i) = hex-decode("00").
+    end. 
+       
+    put-string(outerPaddedKey, 1, {&hmacBlockSize}) = fill("~134", {&hmacBlockSize}). // use octal for the value
+    put-string(innerPaddedKey, 1, {&hmacBlockSize}) = fill("~066", {&hmacBlockSize}). // use octal for the value
         
-    /* correction by Valery A.Eliseev */
-    if length(pcKey) > {&xiBlockSize} then do:
-      set-size(mData) = length(pcKey).
-      put-string(mData, 1, length(pcKey)) = pcKey.
-      /* Roel Lakenvelt: fixed issue in sha256 with keys longer than 64 bytes */
-      if pcSHA = 'SHA-256' then
-        rRawDataSHA = message-digest('SHA-256', mData). 
-      else
-        rRawDataSHA = sha1-digest(mData).    
-      set-size(mKey)     = length(pckey).
-      put-bytes(mKey, 1) = rRawDataSHA.
+    if length(keyString) > {&hmacBlockSize} then do:
+      set-size(dataBytes) = length(keyString).
+      put-string(dataBytes, 1, length(keyString)) = keyString.
+      rRawDataSHA = message-digest(hashAlgoritm, dataBytes). 
+      set-size(keyBytes) = length(keyString).
+      put-bytes(keyBytes, 1) = rRawDataSHA.
     end.
-    else
-      /* end of correction */
-        
-      put-string(mKey, 1, length(pckey))  = pcKey. 
-        
-    do iBytePos = 1 to {&xiBlockSize}:
-          
+    else if (keyString > "") then
+      put-string(keyBytes, 1, length(keyString)) = keyString.       
+      
+    do byteNumber = 1 to {&hmacBlockSize}:
+                    
       assign
-        iKey  = get-byte(mKey, iBytePos)
-        iOpad = get-byte(mKeyOpad, iBytePos)
-        iIpad = get-byte(mKeyIpad, iBytePos).
+        keyByteValue  = get-byte(keyBytes, byteNumber)
+        outerPadByteValue = get-byte(outerPaddedKey, byteNumber)
+        innerPadByteValue = get-byte(innerPaddedKey, byteNumber)
+        .
           
-      /* The inner key, mKeyIpad is formed from mKey by XORing each byte with 0x36.. */
-      put-byte(mKeyIpad, iBytePos) = Binary:XOR(iKey, iIpad).
+      /* The inner key, innerPaddedKey is formed from keyBytes by XORing each byte with 0x36.. */
+      put-byte(innerPaddedKey, byteNumber) = Binary:XOR(innerPadByteValue, keyByteValue).
         
-      /* The inner key, mKeyOpad is formed from mKey by XORing each byte with 0x5C. */
-      put-byte(mKeyOpad, iBytePos) = Binary:XOR(iKey, iOpad).
+      /* The inner key, outerPaddedKey is formed from keyBytes by XORing each byte with 0x5C. */
+      put-byte(outerPaddedKey, byteNumber) = Binary:XOR(outerPadByteValue, keyByteValue).
         
     end.
         
-    set-size(mKey)  = 0.
-    set-size(mData) = 0.
-    set-size(mData) = length(pcData).
-    put-string(mData, 1, length(pcData)) = pcData.
-        
+    set-size(dataBytes) = length(dataString).
+    put-string(dataBytes, 1, length(dataString)) = dataString.
         
     /* Inner Loop*/
-    set-size(mInnerCombined) = get-size(mKeyIpad) + GET-SIZE(mData).
+    set-size(innerCombined) = get-size(innerPaddedKey) + get-size(dataBytes).
+    put-bytes(innerCombined, 1) = innerPaddedKey.
         
-    put-bytes(mInnerCombined, 1) = mKeyIpad.
-    set-size(mKeyIpad) = 0.
-        
-    /*Append the data the end of the block size.*/
-    put-bytes(mInnerCombined, {&xiBlockSize} + 1) = mData.
-        
-    /* Deallocates any memory. */
-    set-size(mData) = 0.
+    /* Append the data the end of the block size.*/
+    put-bytes(innerCombined, {&hmacBlockSize} + 1) = dataBytes.
         
     /* Get the results of the SHA Digest.*/
-    case pcSHA:
-      when 'SHA1' then
-        assign
-          rRawDataSHA = sha1-digest(mInnerCombined).
-      when 'SHA-256' then
-        assign
-          rRawDataSHA = message-digest('SHA-256', mInnerCombined).
-      otherwise 
-        assign
-          rRawDataSHA = sha1-digest(mInnerCombined).
-    end case.
+    rRawDataSHA = message-digest(hashAlgoritm, innerCombined).
                                          
-    /* Deallocates any memory. */
-    set-size(mInnerCombined) = 0.
-        
-    /* Outer Loop calculation for SHA*/
-    set-size(mOuterCombined) = 0.
-    set-size(mOuterCombined) = get-size(mKeyOpad) + LENGTH(rRawDataSHA,'RAW':U).
+    set-size(outerCombined) = get-size(outerPaddedKey) + length(rRawDataSHA, 'RAW').    
+    put-bytes(outerCombined, 1) = outerPaddedKey.
+    put-bytes(outerCombined, {&hmacBlockSize} + 1) = rRawDataSHA.
     
-    put-bytes(mOuterCombined, 1) = mKeyOpad.
-    put-bytes(mOuterCombined, {&xiBlockSize} + 1) = rRawDataSHA.
+    rRawDataSHA = message-digest(hashAlgoritm, outerCombined).    
         
-    /* SHA*/
-    case pcSHA:
-      when 'SHA1' then
-        assign
-          rRawDataSHA = sha1-digest(mOuterCombined).
-      when 'SHA-256' then
-        assign
-          rRawDataSHA = message-digest('SHA-256', mOuterCombined).
-      otherwise 
-        assign
-          rRawDataSHA = sha1-digest(mOuterCombined).
-    end case.
-        
-    /* Deallocates any memory. */
-    set-size(mKeyOpad)       = 0.
-    set-size(mOuterCombined) = 0.
-        
-    /* Convert the raw binary results into a human readable BASE-64 value.*/
-    cHMACSHA = base64-encode(rRawDataSHA).
-        
-    &UNDEFINE xiBlockSize
-    return cHMACSHA.
+    return rRawDataSHA.
+
+    finally:
+      set-size(dataBytes) = 0.
+      set-size(keyBytes)  = 0.
+      set-size(innerCombined) = 0.
+      set-size(innerPaddedKey) = 0.
+      set-size(outerPaddedKey) = 0.
+      set-size(outerCombined) = 0.  
+    end.    
+    
   end method. 
     
 end class.
