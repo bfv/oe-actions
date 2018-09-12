@@ -186,5 +186,18 @@ class bfvlib.serialize.SimpleJsonSerializer implements ISerializable:
     end.
     
   end method.
+  
+  
+  method public longchar SerializeToLongchar(objectToSerialize as Progress.Lang.Object):
     
+    define variable json as JsonObject no-undo.
+    define variable resultString as longchar no-undo.
+    
+    json = this-object:Serialize(objectToSerialize).
+    json:Write(resultString).
+    
+    return resultString.
+    
+  end method.
+  
 end class.
