@@ -50,7 +50,8 @@ The serializer serializes all the public properties. Temp-tables cannot be found
 
 The class will be serialized as:
 
-```{
+```
+{
     "definitions": [
         {
             "topic": "bol.com:order",
