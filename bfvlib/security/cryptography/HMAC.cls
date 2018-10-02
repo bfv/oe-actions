@@ -92,6 +92,7 @@ class bfvlib.security.cryptography.HMAC:
     end.
     else if (keyString > "") then
       put-string(keyBytes, 1, length(keyString)) = keyString.       
+    // in case of empty key, do nothing
       
     do byteNumber = 1 to {&hmacBlockSize}:
                     
@@ -108,10 +109,12 @@ class bfvlib.security.cryptography.HMAC:
       put-byte(outerPaddedKey, byteNumber) = Binary:XOR(outerPadByteValue, keyByteValue).
         
     end.
-        
-    set-size(dataBytes) = length(dataString).
-    put-string(dataBytes, 1, length(dataString)) = dataString.
-        
+    
+    if (length(dataString) > 0) then do:    
+      set-size(dataBytes) = length(dataString).
+      put-string(dataBytes, 1, length(dataString)) = dataString.
+    end.
+    
     /* Inner Loop*/
     set-size(innerCombined) = get-size(innerPaddedKey) + get-size(dataBytes).
     put-bytes(innerCombined, 1) = innerPaddedKey.
