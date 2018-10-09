@@ -5,3 +5,6 @@
 
 .settings/
 test/
+
+results.xml
+.openedge.json
