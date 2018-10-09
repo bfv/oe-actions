@@ -78,4 +78,4 @@ serializer = new SimpleJsonSerializer().
 resultString = serializer:SerializeToLongchar(obj).
 ```
 
-The object can be serialized to a json object as well by the `Serialize` method.
+The object can be serialized to a `JsonObject` as well by the `Serialize` method.
