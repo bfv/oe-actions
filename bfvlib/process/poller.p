@@ -40,6 +40,7 @@ define variable executable as IExecutable no-undo.
 define variable processId as integer no-undo.
 define variable clock as integer no-undo.
 define variable holding as logical no-undo.
+define variable previousDate as date init today no-undo.
 
 define buffer semaphore for bfv_semaphore.
 
@@ -122,6 +123,16 @@ end.
 
 /************************************* procedures / functions *************************************/
 
+procedure archiveLogfile private:
+  
+  define variable todayString as character no-undo.
+  
+  todayString = substitute("&1-&2-&3", year(today - 1), month(today - 1), day(today - 1)).
+  os-copy value(params:Topic + ".log") value(params:Topic + "_" + todayString + ".log").
+  os-delete value(params:Topic + ".log").
+  
+end procedure.
+
 procedure checkForOthers private:
 
   /* attempt to exclusive lock the semaphore. If this fails the process is already running */
@@ -156,7 +167,6 @@ procedure fillClassnames:
       
 end procedure.
 
-
 function getPollerProcess returns IExecutable(topicIn as character):
   
   define variable pollerProcess as IExecutable no-undo.
@@ -178,6 +188,10 @@ end function.
 
 function logThis returns logical (messageString as character):
   
+  if (previousDate <> today) then do:
+    run archiveLogfile.
+  end.
+  
   /* open and close stream so the process can write it as well */ 
   output stream logfile to value(params:Topic + ".log") append.
   
@@ -185,6 +199,7 @@ function logThis returns logical (messageString as character):
   
   finally:
     output stream logfile close.
+    previousDate = today.
   end.
   
 end function.
