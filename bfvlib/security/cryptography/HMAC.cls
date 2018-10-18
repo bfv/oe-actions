@@ -4,23 +4,15 @@
    Purpose     : 
    Syntax      : 
    Description : 
-   Author(s)   : rlakenvelt
-   Created     : Thu Aug 02 13:58:52 CEST 2018
-   Notes       : Code originally written by James Bowen
-                 Fixed bug in sha256 with keys longer than 64 bytes
+   Author(s)   : bronco
+   Created     : 
+   Notes       : Code originally written by James Bowen and Roel Lakenvelt
  ----------------------------------------------------------------------*/
   
-/* Simple HMAC function Overview                                                */
-/* Developer: James Bowen                                                       */
-/* Date:      13/06/2011                                                        */
 /* References: http://www.ietf.org/rfc/rfc2104.txt                              */
 /*             http://the.jhu.edu/upe/member_sites/zarfoss/HMAC-big.jpg         */
 /*             http://en.wikipedia.org/wiki/HMAC                                */
-/*             http://www.cryptostuff.com/crypto/index.php?title=hmac           */
-/* HMAC is a hash based MAC algorithm defined in RFC 2104. It can use any       */
-/* hash function (such as MD5, SHA1 etc). HMAC also requires a user             */
-/* supplied secret key, which is a string of bytes of any length upto 64 bytes. */  
-  
+/*             http://www.cryptostuff.com/crypto/index.php?title=hmac           */  
 
 block-level on error undo, throw.
 
@@ -67,12 +59,12 @@ class bfvlib.security.cryptography.HMAC:
     define variable outerPadByteValue as integer no-undo.
     define variable innerPadByteValue as integer no-undo.
     define variable keyByteValue as integer no-undo.
-    define variable rRawDataSHA as raw no-undo.
+    define variable rawDataSHA as raw no-undo.
     define variable i as integer no-undo.
         
     &SCOPED-DEFINE hmacBlockSize  64
         
-    set-size(keyBytes)     = {&hmacBlockSize}.
+    set-size(keyBytes) = {&hmacBlockSize}.
     set-size(outerPaddedKey) = {&hmacBlockSize}.
     set-size(innerPaddedKey) = {&hmacBlockSize}.
     
@@ -86,9 +78,9 @@ class bfvlib.security.cryptography.HMAC:
     if length(keyString) > {&hmacBlockSize} then do:
       set-size(dataBytes) = length(keyString).
       put-string(dataBytes, 1, length(keyString)) = keyString.
-      rRawDataSHA = message-digest(hashAlgoritm, dataBytes). 
+      rawDataSHA = message-digest(hashAlgoritm, dataBytes). 
       set-size(keyBytes) = length(keyString).
-      put-bytes(keyBytes, 1) = rRawDataSHA.
+      put-bytes(keyBytes, 1) = rawDataSHA.
     end.
     else if (keyString > "") then
       put-string(keyBytes, 1, length(keyString)) = keyString.       
@@ -97,7 +89,7 @@ class bfvlib.security.cryptography.HMAC:
     do byteNumber = 1 to {&hmacBlockSize}:
                     
       assign
-        keyByteValue  = get-byte(keyBytes, byteNumber)
+        keyByteValue = get-byte(keyBytes, byteNumber)
         outerPadByteValue = get-byte(outerPaddedKey, byteNumber)
         innerPadByteValue = get-byte(innerPaddedKey, byteNumber)
         .
@@ -123,19 +115,19 @@ class bfvlib.security.cryptography.HMAC:
     put-bytes(innerCombined, {&hmacBlockSize} + 1) = dataBytes.
         
     /* Get the results of the SHA Digest.*/
-    rRawDataSHA = message-digest(hashAlgoritm, innerCombined).
+    rawDataSHA = message-digest(hashAlgoritm, innerCombined).
                                          
-    set-size(outerCombined) = get-size(outerPaddedKey) + length(rRawDataSHA, 'RAW').    
+    set-size(outerCombined) = get-size(outerPaddedKey) + length(rawDataSHA, 'RAW').    
     put-bytes(outerCombined, 1) = outerPaddedKey.
-    put-bytes(outerCombined, {&hmacBlockSize} + 1) = rRawDataSHA.
+    put-bytes(outerCombined, {&hmacBlockSize} + 1) = rawDataSHA.
     
-    rRawDataSHA = message-digest(hashAlgoritm, outerCombined).    
+    rawDataSHA = message-digest(hashAlgoritm, outerCombined).    
         
-    return rRawDataSHA.
+    return rawDataSHA.
 
     finally:
       set-size(dataBytes) = 0.
-      set-size(keyBytes)  = 0.
+      set-size(keyBytes) = 0.
       set-size(innerCombined) = 0.
       set-size(innerPaddedKey) = 0.
       set-size(outerPaddedKey) = 0.
