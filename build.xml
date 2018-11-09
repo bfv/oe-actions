@@ -23,8 +23,7 @@
 
   <target name="init">
     <delete dir="${builddir}" failonerror="false" />
-    <mkdir dir="${builddir}" />
-  	<mkdir dir="${builddir}/xref_out" />
+    <mkdir dir="${builddir}" />  	
   </target>
   
 	<target name="createdb">
@@ -46,6 +45,7 @@
 -->
 	
   <target name="compile">
+    <mkdir dir="${builddir}/xref_out" />
     <PCTCompile destdir="${builddir}/bin" dlchome="${DLC}" stopOnError="true" graphicalMode="false" forceCompile="true" MD5="true" keepXref="true" xrefDir="${builddir}/xref_out">
       <DBConnection dbName="bfvlib" dbDir="${builddir}/db" singleUser="true" />
       <propath>
@@ -67,5 +67,5 @@
   	  </fileset>
     </PCTLibrary>
   </target>
-
+  
 </project>
