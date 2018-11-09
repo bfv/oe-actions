@@ -47,22 +47,6 @@ class bfvlib.security.cryptography.HMAC_TC:
       HMAC:SHA1_Hex("key", "The quick brown fox jumps over the lazy dog")
     ).
   end method.
-    
-  @Test.
-  method public void HMAC_MD5_Hex_empty():
-    Assert:Equals(
-      "74e6f7298a9c2d168935f58c001bad88",
-      HMAC:MD5_Hex("", "")
-    ).
-  end method.
-
-  @Test.
-  method public void HMAC_MD5_Hex_quickfox():
-    Assert:Equals(
-      "80070713463e7749b90c2dc24911e275",
-      HMAC:MD5_Hex("key", "The quick brown fox jumps over the lazy dog")
-    ).
-  end method.
   
   @Test.
   method public void HMAC_SHA256_Base64_secret():

@@ -36,19 +36,11 @@ class bfvlib.security.cryptography.HMAC:
     return string(hex-encode(keyedHash('SHA-1', key, data))).
   end.
   
-  method public static character MD5_Base64(key as character, data as character):
-    return string(base64-encode(keyedHash('MD5', key, data))).
-  end.    
-
-   method public static character MD5_Hex(key as character, data as character):
-    return string(hex-encode(keyedHash('MD5', key, data))).
-  end.
-  
-  /* in its current state the algorithm is flawed when using zero length keys.
-   * In reality this will not occur 
-   */
   method private static raw keyedHash(hashAlgoritm as character, keyString as character, dataString as character):
     
+    &if proversion(1) >= "11.7.4" &then
+    return message-digest("HMAC-" + hashAlgoritm, dataString, keyString).
+    &else
     define variable outerPaddedKey as memptr no-undo.
     define variable innerPaddedKey as memptr no-undo.
     define variable dataBytes as memptr no-undo.
@@ -133,6 +125,7 @@ class bfvlib.security.cryptography.HMAC:
       set-size(outerPaddedKey) = 0.
       set-size(outerCombined) = 0.  
     end.    
+    &endif
     
   end method. 
     
