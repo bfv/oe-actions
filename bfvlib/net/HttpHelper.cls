@@ -253,5 +253,39 @@ class bfvlib.net.HttpHelper:
     return builder.
     
   end method.
+
+  method public static character NormalizeHeaderName (headerName as character):
+    
+    define variable nextCharUpper as logical no-undo.
+    define variable resultString as character no-undo.
+    define variable headerNameLength as integer no-undo.
+    define variable i as integer no-undo.
+    define variable currentChar as character no-undo.
+    
+    headerNameLength = length(headerName).
+    nextCharUpper = true.
+    do i = 1 to headerNameLength:
+      
+      currentChar = substring(headerName, i, 1).
+
+      if (nextCharUpper) then do:
+        resultString = resultString + caps(currentChar).
+        nextCharUpper = false.
+        next.
+      end.  
+      
+      if (currentChar = '_') then
+        currentChar = '-'.
+      
+      if (currentChar = '-') then
+        nextCharUpper = true.        
+      
+      resultString = resultString + lc(currentChar).
+      
+    end.
+    
+    return resultString.
+    
+  end method.
   
 end class.
