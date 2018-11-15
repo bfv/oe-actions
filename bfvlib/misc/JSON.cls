@@ -10,6 +10,7 @@
   ----------------------------------------------------------------------*/
 
 using Progress.Json.ObjectModel.JsonConstruct.
+using Progress.Json.ObjectModel.ObjectModelParser.
 
 block-level on error undo, throw.
 
@@ -23,6 +24,18 @@ class bfvlib.misc.JSON:
     define variable resultString as longchar no-undo.
     json:Write(resultString, formatJson).
     return resultString.
+  end method.
+  
+  method public static JsonConstruct ParseFile(filename as character):
+    
+    define variable parser as ObjectModelParser no-undo.
+    define variable json as JsonConstruct no-undo.
+    
+    parser = new ObjectModelParser().
+    json = parser:ParseFile(fileName).
+    
+    return json.
+    
   end method.
   
 end class.
