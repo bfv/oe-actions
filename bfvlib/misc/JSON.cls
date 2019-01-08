@@ -32,7 +32,7 @@ class bfvlib.misc.JSON:
     define variable json as JsonConstruct no-undo.
     
     parser = new ObjectModelParser().
-    json = parser:ParseFile(fileName).
+    json = parser:ParseFile(search(fileName)).
     
     return json.
     
