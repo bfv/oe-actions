@@ -15,8 +15,6 @@ block-level on error undo, throw.
 
 class bfvlib.net.HttpRequestOptions: 
   
-  define variable httpLinefeed as character no-undo.
-  
   define public property Accept as character no-undo get. set.
   define public property ContentType as character no-undo get. set.
   

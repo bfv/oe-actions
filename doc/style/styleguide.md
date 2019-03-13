@@ -25,3 +25,15 @@ fully qualified class name example: `bfvlib.serialize.SimpleJsonSerializer`
 ### non-class files
 .p, .i, .w file names are in __lowercase__
 
+
+## structure
+
+### indents
+The indents are spaces, not tabs. The tab size is 2 spaces.
+
+### order
+The order within a source is
+- block-level first
+- `using`s second
+- the rest
+
