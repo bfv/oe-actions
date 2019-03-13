@@ -15,10 +15,10 @@ block-level on error undo, throw.
 
 class bfvlib.misc.Binary: 
   
-  define public static property Bits8 as integer no-undo init 8 get. 
-  define public static property Bits16 as integer no-undo init 16 get.
-  define public static property Bits24 as integer no-undo init 24 get.
-  define public static property Bits32 as integer no-undo init 32 get.
+  define public static property Bits8 as integer no-undo initial 8 get. 
+  define public static property Bits16 as integer no-undo initial 16 get.
+  define public static property Bits24 as integer no-undo initial 24 get.
+  define public static property Bits32 as integer no-undo initial 32 get.
   
   method public static integer AND(operand1 as integer, operand2 as integer):
     return Binary:AND(operand1, operand2, 8).

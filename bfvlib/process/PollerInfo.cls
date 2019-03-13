@@ -14,8 +14,8 @@ block-level on error undo, throw.
 class bfvlib.process.PollerInfo: 
   
   define public property Topic as character no-undo get. set.
-  define public property Period as integer init 60 no-undo get. set.
-  define public property ReportIsAlive as logical init true no-undo get. set.
+  define public property Period as integer initial 60 no-undo get. set.
+  define public property ReportIsAlive as logical initial true no-undo get. set.
   define public property CronMode as logical no-undo get. set.
   define public property Verbose as logical no-undo get. set.
   

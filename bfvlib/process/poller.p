@@ -40,7 +40,7 @@ define variable executable as IExecutable no-undo.
 define variable processId as integer no-undo.
 define variable clock as integer no-undo.
 define variable holding as logical no-undo.
-define variable previousDate as date init today no-undo.
+define variable previousDate as date initial today no-undo.
 
 define buffer semaphore for bfv_semaphore.
 
