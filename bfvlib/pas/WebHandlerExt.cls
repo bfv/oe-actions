@@ -45,6 +45,7 @@ class bfvlib.pas.WebHandlerExt inherits WebHandler:
     this-object:extractHttpInfo(request).
     
     endpoint = request:GetContextValue('URI_FINAL_MATCH_GROUP').
+    message substitute('GET: &1', endpoint).
     
     case endpoint:
       
@@ -65,7 +66,10 @@ class bfvlib.pas.WebHandlerExt inherits WebHandler:
              
       when '/customercache' then
         response = this-object:processCustomer(request, true).
-        
+      
+      when '/propath' then
+        response = this-object:processPropath(request).
+          
       otherwise do:
         response = this-object:processNotAllowed(request).  
       end.
@@ -301,7 +305,7 @@ class bfvlib.pas.WebHandlerExt inherits WebHandler:
     define variable response as IHttpResponse no-undo.
     define variable json as JsonObject no-undo.
     define variable oeJson as JsonObject no-undo.
-    
+        
     response = new WebResponse().
     response:ContentType = 'application/json'.
     
@@ -318,6 +322,7 @@ class bfvlib.pas.WebHandlerExt inherits WebHandler:
       this-object
         :addContext(request, oeJson)
         :addPathParameters(request, oeJson)
+        :addPropath(request, oeJson)
         .
     
       json:Add('openedge', oeJson).
@@ -331,6 +336,51 @@ class bfvlib.pas.WebHandlerExt inherits WebHandler:
   end method.
 
 
+  method private IHttpResponse processPropath(request as IWebRequest):
+    
+    define variable response as IHttpResponse no-undo.
+    define variable json as JsonObject no-undo.
+    
+    response = new WebResponse().
+    response:ContentType = 'application/json'.
+    
+    json = new JsonObject().
+    json:Add('propath', this-object:getPropathJson()).
+     
+    response:Entity = json.
+    
+    return response.
+    
+  end method.
+
+
+  method private JsonArray getPropathJson():
+    
+    define variable jsonArray as JsonArray no-undo.
+    define variable i as integer no-undo.
+    define variable numEntries as integer no-undo.
+    
+    jsonArray = new JsonArray().
+    
+    numEntries = num-entries(propath).
+    do i = 1 to numEntries:
+      jsonArray:Add(entry(i, propath)).
+    end.
+    
+    return jsonArray.
+    
+  end method.
+  
+  
+  method private WebHandlerExt addPropath(request as IWebRequest, json as JsonObject):
+    
+    json:Add('propath', this-object:getPropathJson()).
+    
+    return this-object.
+    
+  end method.
+  
+  
   method private IHttpResponse processHome(request as IWebRequest):
     
     define variable response as IHttpResponse no-undo.
