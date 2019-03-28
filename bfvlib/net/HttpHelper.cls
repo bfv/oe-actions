@@ -68,7 +68,7 @@ class bfvlib.net.HttpHelper:
   end method.
   
   method public static IHttpResponse Post(url as character, body as longchar):
-    return HttpHelper:Put(url, body, ?).  
+    return HttpHelper:Post(url, body, ?).  
   end.
   
   method public static IHttpResponse Post(url as character, body as longchar, options as HttpRequestOptions):
