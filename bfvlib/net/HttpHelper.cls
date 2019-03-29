@@ -49,10 +49,7 @@ class bfvlib.net.HttpHelper:
     define variable response as IHttpResponse no-undo.
   
     builder = RequestBuilder:Get(url).
-    builder = HttpHelper:checkProxy(builder, options).
-    
-    if (valid-object(options)) then
-      addHeadersToRequest(builder, options).
+    builder = HttpHelper:applyOptions(builder, options).
     
     request = builder:Request.
     
@@ -77,12 +74,9 @@ class bfvlib.net.HttpHelper:
     define variable request as IHttpRequest no-undo.
     define variable client as IHttpClient no-undo.   
     define variable response as IHttpResponse no-undo.
-  
-    builder = RequestBuilder:Post(url, new String(body)).
-    builder = HttpHelper:checkProxy(builder, options).
     
-    if (valid-object(options)) then
-      addHeadersToRequest(builder, options).
+    builder = RequestBuilder:Post(url, new String(body)).    
+    builder = HttpHelper:applyOptions(builder, options).
     
     request = builder:Request.
     
@@ -109,10 +103,7 @@ class bfvlib.net.HttpHelper:
     define variable response as IHttpResponse no-undo.
   
     builder = RequestBuilder:Put(url, new String(body)).
-    builder = HttpHelper:checkProxy(builder, options).
-    
-    if (valid-object(options)) then
-      addHeadersToRequest(builder, options).
+    builder = HttpHelper:applyOptions(builder, options).
     
     request = builder:Request.
     
@@ -124,6 +115,18 @@ class bfvlib.net.HttpHelper:
     response = client:Execute(request).
     
     return response.
+    
+  end method.
+  
+  
+  method private static RequestBuilder applyOptions(builder as RequestBuilder, options as HttpRequestOptions):
+    
+    if (valid-object(options)) then do:
+      builder = HttpHelper:checkProxy(builder, options).
+      HttpHelper:addHeadersToRequest(builder, options).
+    end.
+    
+    return builder.
     
   end method.
   
@@ -245,7 +248,7 @@ class bfvlib.net.HttpHelper:
           
   end method.
   
-  method public static RequestBuilder checkProxy(builder as RequestBuilder, options as HttpRequestOptions):
+  method private static RequestBuilder checkProxy(builder as RequestBuilder, options as HttpRequestOptions):
     
     if (options:ViaProxy > "") then
       builder:ViaProxy(options:ViaProxy).    
