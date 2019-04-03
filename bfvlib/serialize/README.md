@@ -1,6 +1,6 @@
 # serializing / deserializing
 Although OpenEdge has serializing capabilities, the output may not be what is wanted. For example, OpenEdge places version info in the output JSON and all the property one level deeper.
-The idea behind this (de-)serializer is to operator the same as one can expect when serializing JavaScript object.
+The idea behind this (de-)serializer is to operate the same as one can expect when serializing JavaScript objects.
 
 Suppose you want to serialize this class:
 
@@ -79,3 +79,50 @@ resultString = serializer:SerializeToLongchar(obj).
 ```
 
 The object can be serialized to a `JsonObject` as well by the `Serialize` method.
+
+## deserializing
+Since OpenEdge lacks the flexibility when it comes to turning JSON into objects you have to know what JSON (i.e. the structure) of what you will receive.
+
+So suppose you expect to receive something like:
+```
+{
+  "version": "1.0",
+  "active": true,
+  "rows": [
+    { "field1": "hello", "world" },
+    { "field1": "openedge", "12.0" }
+  ]
+}
+```
+A receiving class could look like, note the GetDataStructures method where you define in what node you expect to receive the contents for the temp-table.
+
+```
+using bfvlib.serialize.ISerializableDataStructure.
+using OpenEdge.Core.*.
+
+block-level on error undo, throw.
+
+class bfvlib.serialize.test.CompoundObject implements ISerializableDataStructure:
+
+  define public property version as character no-undo get. set.
+  define public property active as logical no-undo get. set.
+
+  define private temp-table ttfield no-undo
+    field field1 as character
+    field field2 as character
+    .
+
+
+  method public IMap GetDataStructures():
+
+    define variable dataStructs as IMap no-undo.
+
+    dataStructs = new Map().
+    dataStructs:Put(new String("rows"), new WidgetHandle(temp-table ttfield:handle)).
+
+    return dataStructs.
+
+  end method.
+
+end class.
+```
