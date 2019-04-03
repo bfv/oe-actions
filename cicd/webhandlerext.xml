@@ -1,0 +1,51 @@
+<project name="build" default="build" basedir="./..">
+
+  <taskdef resource="PCT.properties" />
+  <typedef resource="types.properties" />
+  <property environment="env"/>
+
+  <target name="build" depends="initvars,init">
+    <antcall target="compile" />
+  	<antcall target="package" />
+  </target>
+
+  <target name="initvars">
+    <property name="srcdir" location="${basedir}" />
+    <property name="rootdir" location="${basedir}/.." />
+    <property name="builddir" location="${rootdir}/build/webhandlerext" />
+
+    <echo message="rootdir:       ${rootdir}" />
+    <echo message="srcdir:        ${srcdir}" />
+    <echo message="builddir:      ${builddir}" />
+    <echo message="DLC:           ${DLC}" />
+  </target>
+
+  <target name="init">
+    <delete dir="${builddir}" failonerror="false" />
+    <mkdir dir="${builddir}" />  	
+  </target>
+  
+  <target name="compile">
+    <mkdir dir="${builddir}/xref_out" />
+    <PCTCompile destdir="${builddir}/bin" dlchome="${DLC}" stopOnError="true" 
+        graphicalMode="false" forceCompile="true" MD5="true" 
+        keepXref="true" xrefDir="${builddir}/xref_out"
+    	  requireFullKeywords="true" requireFullNames="true" requireFieldQualifiers="true">
+      <propath>
+        <pathelement path="${srcdir}" />
+        <pathelement path="${DLC}/tty/OpenEdge.Core.pl" />
+        <pathelement path="${DLC}/tty/netlib/OpenEdge.Net.pl" />
+      </propath>
+      <fileset dir="${srcdir}" includesfile="${srcdir}/cicd/webhandlerext.include" />
+    </PCTCompile>
+  </target>
+  
+  <target name="package">
+    <PCTLibrary destFile="${builddir}/bfvlib.pl"  dlchome="${DLC}">
+      <fileset dir="${builddir}/bin">
+        <include name="**/*.r" />
+  	  </fileset>
+    </PCTLibrary>
+  </target>
+  
+</project>
