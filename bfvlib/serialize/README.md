@@ -89,8 +89,8 @@ So suppose you expect to receive something like:
   "version": "1.0",
   "active": true,
   "rows": [
-    { "field1": "hello", "world" },
-    { "field1": "openedge", "12.0" }
+    { "field1": "hello", "field2": "world" },
+    { "field1": "openedge", "field2": "12.0" }
   ]
 }
 ```
