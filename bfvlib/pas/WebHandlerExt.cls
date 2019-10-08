@@ -41,12 +41,14 @@ class bfvlib.pas.WebHandlerExt inherits WebHandler:
     define variable response as IHttpResponse no-undo.
     define variable writer as OpenEdge.Web.WebResponseWriter  no-undo.               
     define variable endpoint as character no-undo.
+    define variable errorFound as logical no-undo.
     
     this-object:extractHttpInfo(request).
     
     endpoint = request:GetContextValue('URI_FINAL_MATCH_GROUP').
     message substitute('GET: &1', endpoint).
     
+    errorFound = false.
     case endpoint:
       
       when '/' then 
@@ -72,11 +74,11 @@ class bfvlib.pas.WebHandlerExt inherits WebHandler:
           
       otherwise do:
         response = this-object:processNotAllowed(request).  
+        errorFound = true.
       end.
         
     end case.
-    
-        
+      
     writer = new WebResponseWriter(response).
     writer:Open().
     writer:Close().
@@ -100,15 +102,14 @@ class bfvlib.pas.WebHandlerExt inherits WebHandler:
         response = this-object:processHome(request).
         
       when '/post' then
-        response = this-object:processGet(request).
+        response = this-object:processGet(request).  // W.I.P.
       
       otherwise do:
         response = this-object:processNotAllowed(request).  
       end.
         
     end case.
-    
-        
+         
     writer = new WebResponseWriter(response).
     writer:Open().
     writer:Close().
@@ -230,11 +231,32 @@ class bfvlib.pas.WebHandlerExt inherits WebHandler:
     
   end method.
 
+  
+  method private WebHandlerExt addOpenEdgeInformation(request as IWebRequest, json as JsonObject):
+    
+    this-object
+      :addContext(request, json)
+      :addPathParameters(request, json)
+      :addPropath(request, json)
+      :addVersion(request, json)
+      .
 
+    return this-object.
+    
+  end method.
+  
+  
   method private WebHandlerExt addStandardHttp(request as IWebRequest, json as JsonObject):
     
+    define variable local as JsonObject no-undo.
+    
     json:Add('origin', request:RemoteHost).        
-    json:Add('url', request:URI:BaseURI + request:URI:Path).    
+    json:Add('url', request:URI:BaseURI + request:URI:Path).  
+    
+    local = new JsonObject().
+    local:Add('ip', request:GetContextValue('LOCAL_ADDR')).
+    
+    json:Add('local', local).
     
     return this-object.
 
@@ -319,14 +341,8 @@ class bfvlib.pas.WebHandlerExt inherits WebHandler:
     oeJson = new JsonObject().
     
     if (this-object:queryParameters:Get('openedge') = 'true') then do:
-      this-object
-        :addContext(request, oeJson)
-        :addPathParameters(request, oeJson)
-        :addPropath(request, oeJson)
-        .
-    
+      this-object:addOpenEdgeInformation(request, oeJson).
       json:Add('openedge', oeJson).
-      
     end.
     
     response:Entity = json.
@@ -380,6 +396,13 @@ class bfvlib.pas.WebHandlerExt inherits WebHandler:
     
   end method.
   
+  method private WebHandlerExt addVersion(request as IWebRequest, json as JsonObject):
+    
+    json:Add('version', proversion()).
+    
+    return this-object.
+    
+  end method.
   
   method private IHttpResponse processHome(request as IWebRequest):
     
