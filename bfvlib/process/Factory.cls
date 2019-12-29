@@ -14,68 +14,58 @@ using Progress.Json.ObjectModel.ObjectModelParser from propath.
 using Progress.Json.ObjectModel.JsonObject from propath.
 using bfvlib.process.ISingleton from propath.
 using bfvlib.process.IDestroyable from propath.
+using bfvlib.process.Factory from propath.
+using bfvlib.process.FactoryDefinitionReader from propath.
 
 block-level on error undo, throw.
 
 class bfvlib.process.Factory: 
     
-    define private static temp-table ttdefinition no-undo
-        field name as character
-        field implementation as character
-        field lifecycle as character 
-        .
-    
-    define private static temp-table ttinstance no-undo
+    {bfvlib/process/factory.i &accessor="private"}
+
+    define private temp-table ttinstance no-undo
         field name as character 
         field instance as Progress.Lang.Object
         .
-
+    
+    define private static property instance as Factory no-undo get. set.
+    
+    
     /*------------------------------------------------------------------------------
      Purpose: Adds the definitions in definitionsFile parameter to the factory.
      Notes: If multiple definitions exist with the same name, the last one wins.
      @param definitionsFile Filename of the defintions to be added to the factory.
             
     ------------------------------------------------------------------------------*/
-    constructor public Factory(definitionsFile as character):
-        this-object:init(definitionsFile).    
+    constructor static Factory():
+        Factory:instance = new Factory().
+    end.
+    
+    constructor private Factory():
+        
     end.
     
     
-    method private void init(definitionsFile as character):
-      
-        define variable definitionsFullPath as character no-undo.
+    method private void readDefs(definitionsFile as character):
         
-        definitionsFullPath = search(definitionsFile).
-        if (definitionsFullPath = ?) then
-            return.
-            
-        this-object:readDefinitions(definitionsFullPath).
+        define variable reader as FactoryDefinitionReader no-undo.
+        
+        reader = new FactoryDefinitionReader().
+        reader:ReadDefinitions(definitionsFile).
+        reader:GetDefinitions(output table ttdefinition).
         
     end method.
     
     
-    method private void readDefinitions(definitionsFullPath as character):
+    /*------------------------------------------------------------------------------
+     Purpose: Read the definitions in a file in the factory 
+     Notes: 
+     @param definitionsFile file with the definitions (can be) relative to the PROPATH
       
-        define variable parser as ObjectModelParser no-undo.
-        define variable json as JsonObject no-undo.
-        define variable i as integer no-undo.
-        define variable names as character extent no-undo.
-        
-        parser = new ObjectModelParser().
-        json = cast(parser:ParseFile(definitionsFullPath), JsonObject).
-        
-        names = json:GetNames().
-        do i = 1 to extent(names):
-            
-            find ttdefinition where ttdefinition.name = names[i] no-error.
-            if (not available(ttdefinition)) then
-                create ttdefinition.
-                
-            ttdefinition.name = names[i].
-            ttdefinition.implementation = json:GetCharacter(names[i]).    
-        end.
-        
-    end method.
+    ------------------------------------------------------------------------------*/
+    method public static void ReadDefinitions(definitionsFile as character):
+        Factory:instance:readDefs(definitionsFile).
+    end method.    
     
     
     /*------------------------------------------------------------------------------
@@ -85,6 +75,10 @@ class bfvlib.process.Factory:
      @return Object instance 
     ------------------------------------------------------------------------------*/
     method public static Progress.Lang.Object Get(name as character):
+        return Factory:instance:GetInstance(name).
+    end method.
+    
+    method private Progress.Lang.Object GetInstance(name as character):
         
         define variable instance as Progress.Lang.Object no-undo.
         
@@ -104,7 +98,7 @@ class bfvlib.process.Factory:
         return instance.
                
     end method.
-    
+       
     
     /*------------------------------------------------------------------------------
      Purpose: Deletes an instance from the factory
@@ -112,7 +106,12 @@ class bfvlib.process.Factory:
      @param instance instance to delete 
     ------------------------------------------------------------------------------*/
     method public static void Delete(instance as Progress.Lang.Object):
-        
+        Factory:instance:deleteInstance(instance).
+    end method.
+    
+    
+    method private void deleteInstance(instance as Progress.Lang.Object):
+
         for first ttinstance where ttinstance.instance = instance:
             
             if (valid-object(ttinstance.instance)) then do:

@@ -1,0 +1,6 @@
+{
+    "refs": [
+        "bfvlib/process/factory-sample2.json"
+    ],
+    "bfvlib.process.async.IASyncProcess": "bfvlib.process.async.ASyncProcess"
+}

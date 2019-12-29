@@ -1,0 +1,4 @@
+{
+    "bfvlib.pas.IRequestDispatcher": "bfvlib.pas.RequestDispatcher",
+    "bfvlib.process.async.IASyncProcess": "bfvlib.process.async.ASyncProcess2"
+}
