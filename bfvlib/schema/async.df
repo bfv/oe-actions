@@ -1,0 +1,84 @@
+ADD TABLE "bfv_asyncprocess"
+  AREA "DataArea"
+  LABEL "Running async processes"
+  DUMP-NAME "bfv_asyncprocess"
+
+ADD FIELD "id" OF "bfv_asyncprocess" AS character 
+  FORMAT "x(36)"
+  INITIAL ""
+  LABEL "id"
+  POSITION 2
+  MAX-WIDTH 72
+  COLUMN-LABEL "id"
+  ORDER 10
+
+ADD FIELD "processstatus" OF "bfv_asyncprocess" AS character 
+  DESCRIPTION "new,sent,waiting,done,error
+etc"
+  FORMAT "x(8)"
+  INITIAL ""
+  POSITION 3
+  MAX-WIDTH 16
+  ORDER 30
+
+ADD FIELD "created" OF "bfv_asyncprocess" AS datetime-tz 
+  FORMAT "99/99/9999 HH:MM:SS.SSS+HH:MM"
+  INITIAL ?
+  LABEL "created"
+  POSITION 4
+  MAX-WIDTH 12
+  COLUMN-LABEL "created"
+  ORDER 20
+
+ADD FIELD "expires" OF "bfv_asyncprocess" AS datetime-tz 
+  FORMAT "99/99/9999 HH:MM:SS.SSS+HH:MM"
+  INITIAL ?
+  LABEL "expires"
+  POSITION 5
+  MAX-WIDTH 12
+  COLUMN-LABEL "expires"
+  ORDER 40
+
+ADD FIELD "queuename" OF "bfv_asyncprocess" AS character 
+  FORMAT "x(40)"
+  INITIAL ""
+  LABEL "queuename"
+  POSITION 6
+  MAX-WIDTH 80
+  COLUMN-LABEL "queuename"
+  ORDER 15
+
+ADD FIELD "finished" OF "bfv_asyncprocess" AS datetime-tz 
+  FORMAT "99/99/9999 HH:MM:SS.SSS+HH:MM"
+  INITIAL ?
+  LABEL "finished"
+  POSITION 7
+  MAX-WIDTH 12
+  COLUMN-LABEL "finished"
+  ORDER 50
+
+ADD FIELD "topic" OF "bfv_asyncprocess" AS character 
+  FORMAT "x(32)"
+  INITIAL ""
+  LABEL "topic"
+  POSITION 8
+  MAX-WIDTH 64
+  COLUMN-LABEL "topic"
+  ORDER 60
+
+ADD INDEX "pk" ON "bfv_asyncprocess" 
+  AREA "IndexArea"
+  UNIQUE
+  PRIMARY
+  INDEX-FIELD "id" ASCENDING 
+
+ADD INDEX "queuename" ON "bfv_asyncprocess" 
+  AREA "IndexArea"
+  UNIQUE
+  INDEX-FIELD "queuename" ASCENDING 
+
+.
+PSC
+cpstream=UTF-8
+.
+0000001669
